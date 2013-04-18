@@ -78,12 +78,14 @@ struct Node	//for dijkstra
 		curDist = 500*500+500*500;	//just a big enough number
 	}
 };
+
 vector<Square> squares; // Holds 3 squares
 vector<Point> points; // Holds 2 points
 vector<Line> lines;
 vector<Line> connections;	//just for display
 vector<Node*> dijkstra;
 vector<Line> path;
+
 void init(void) {
 
 	glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -117,7 +119,7 @@ void drawPoint(Point p) {
 	else if (p.type == FINISH_POINT)
 		glColor3f(0.4, 0.7, 1.0);
 	else
-		glColor3f(0.8, 0.7, 0.4);
+		glColor3f(0.7, 0.7, 0.7);
 	glBegin(GL_POINTS);
 	glVertex2f(p.x, p.y);
 	glEnd();
@@ -126,7 +128,8 @@ void drawPoint(Point p) {
 
 void drawLine(Line l)
 {
-	glColor3f(0.8, 0.8, 0.4);
+	glLineWidth(1.0);
+	glColor3f(0.9, 0.9, 0.9);
 	glBegin(GL_LINES);
 	glVertex2d(l.x1, l.y1);
 	glVertex2d(l.x2, l.y2);
@@ -135,16 +138,19 @@ void drawLine(Line l)
 
 void drawConnections(Line l)
 {
-	glColor3f(0.4, 0.4, 0.4);
+	glLineWidth(1.0);
+	glColor3f(0.7, 0.7, 0.7);
 	glBegin(GL_LINES);
 	glVertex2d(l.x1, l.y1);
 	glVertex2d(l.x2, l.y2);
 	glEnd();
 }
+
 void drawPath()
 {
 	glColor3f(1, 0, 0);
-	
+	glLineWidth(2.5);
+
 	glBegin(GL_LINES);
 	for(int i=0; i<path.size(); i++)
 	{
@@ -478,6 +484,10 @@ void mouse (int button, int state, int x, int y) {
 		if (state == GLUT_DOWN) {
 			squares.clear();
 			points.clear();
+			lines.clear();
+			connections.clear();
+			dijkstra.clear();
+			path.clear();
 			rectCount = 0;
 			glutPostRedisplay();
 			glutIdleFunc(NULL);
