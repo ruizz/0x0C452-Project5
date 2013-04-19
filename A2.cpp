@@ -75,7 +75,7 @@ struct Node	//for dijkstra
 	Node(int _x, int _y):pos(Point(_x,_y))
 	{
 		from = NULL;
-		curDist = 500*500+500*500;	//just a big enough number
+		curDist = 500*500+500*500*500;	//just a big enough number
 	}
 };
 
@@ -193,6 +193,108 @@ void reshape(int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
+void addLineAt(int x)
+{
+	int prev_lim=0;
+	bool b=true;
+	while(b)
+	{
+		b = false;
+		for(int i=0; i<squares.size(); i++)
+		{
+			if(squares[i].x1 <= x && x <= squares[i].x2)
+			{
+				//printf("%d %d %d\n", squares[i].y1, squares[i].y2, prev_lim);
+				if(squares[i].y1 <= prev_lim && prev_lim <= squares[i].y2 && prev_lim < squares[i].y2)
+				{
+					prev_lim = squares[i].y2;
+					b = true;
+				}
+			}
+		}
+		
+	}
+	//printf("prev_lim : %d\n", prev_lim);
+	while(prev_lim <500)
+	{
+		int lim=500;
+		int index=-1;
+		for(int i=0; i<squares.size(); i++)
+		{
+			if(squares[i].x1 <= x && x <= squares[i].x2)
+			{
+				if(squares[i].y1 > prev_lim && lim > squares[i].y1)
+				{
+					lim = squares[i].y1;
+					index=i;
+				}
+			}
+		}
+		if(index != -1)
+		{
+			int upy = prev_lim;
+			int downy = lim;
+			if(prev_lim != 0)
+			{
+				prev_lim++;
+			}
+			if(lim != 500)
+			{
+				lim--;
+			}
+			lines.push_back(Line(x, prev_lim, x, lim));
+			//printf("AA : %d %d\n", prev_lim, lim);
+			prev_lim = squares[index].y2;
+			bool changed = true;
+			while(changed)
+			{
+				changed = false;
+				
+				for(int i=0; i<squares.size(); i++)
+				{
+					if(squares[i].x1 <= x && x <= squares[i].x2)
+					{
+						if(squares[i].y1 <= prev_lim && prev_lim <= squares[i].y2 && prev_lim < squares[i].y2)
+						{
+							prev_lim = squares[i].y2;
+							//printf("prv : %d\n", prev_lim);
+							changed = true;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			
+			int upy = prev_lim;
+			if(prev_lim != 0)
+			{
+				prev_lim++;
+			}
+			lines.push_back(Line(x, prev_lim, x, 499));
+			//printf("AA : %d %d\n", prev_lim, 500);
+			break;
+		}
+	}
+}
+void removePointAt(int x)
+{
+	bool removed = true;
+	while(removed)
+	{
+		removed = false;
+		for(int i=0; i<points.size(); i++)
+		{
+			if(points[i].x == x)
+			{
+				points.erase(points.begin() + i);
+				removed = true;
+				break;
+			}
+		}
+	}
+}
 void getLines()
 {
 	for(int i=0; i<squares.size(); i++)
@@ -236,7 +338,7 @@ void getLines()
 					if(squares[i].y1 > squares[j].y2 && squares[i].y1 > squares[j].y1 && uplimitleft != -1 && uplimitleft < squares[j].y2)
 					{
 						//upper limit
-						uplimitleft = squares[j].y2;
+						uplimitleft = squares[j].y2+1;
 					}
 					else if(squares[i].y1 > squares[j].y1 && squares[i].y1 < squares[j].y2)
 					{
@@ -245,7 +347,7 @@ void getLines()
 					if(squares[i].y2 < squares[j].y1 && squares[i].y2 < squares[j].y2 && lolimitleft != -1 && lolimitleft > squares[j].y1)
 					{
 						//upper limit
-						lolimitleft = squares[j].y1;
+						lolimitleft = squares[j].y1-1;
 					}
 					else if(squares[i].y2 > squares[j].y1 && squares[i].y2 < squares[j].y2)
 					{
@@ -258,7 +360,7 @@ void getLines()
 					if(squares[i].y1 > squares[j].y2 && squares[i].y1 > squares[j].y1 && uplimitright != -1 && uplimitright < squares[j].y2)
 					{
 						//upper limit
-						uplimitright = squares[j].y2;
+						uplimitright = squares[j].y2+1;
 					}
 					else if(squares[i].y1 > squares[j].y1 && squares[i].y1 < squares[j].y2)
 					{
@@ -267,7 +369,7 @@ void getLines()
 					if(squares[i].y2 < squares[j].y1 && squares[i].y2 < squares[j].y2 && lolimitright != -1 && lolimitright > squares[j].y1)
 					{
 						//upper limit
-						lolimitright = squares[j].y1;
+						lolimitright = squares[j].y1-1;
 					}
 					else if(squares[i].y2 > squares[j].y1 && squares[i].y2 < squares[j].y2)
 					{
@@ -278,17 +380,19 @@ void getLines()
 			}
 		}
 		if(uplimitleft != -1)
-			lines.push_back(Line(squares[i].x1, squares[i].y1, squares[i].x1, uplimitleft));
+			lines.push_back(Line(squares[i].x1, squares[i].y1-1, squares[i].x1, uplimitleft));
 		if(lolimitleft != -1)
-			lines.push_back(Line(squares[i].x1, lolimitleft, squares[i].x1, squares[i].y2));
+			lines.push_back(Line(squares[i].x1, lolimitleft, squares[i].x1, squares[i].y2+1));
 		if(uplimitright != -1)
-			lines.push_back(Line(squares[i].x2, squares[i].y1, squares[i].x2, uplimitright));
+			lines.push_back(Line(squares[i].x2, squares[i].y1-1, squares[i].x2, uplimitright));
 		if(lolimitright != -1)
-			lines.push_back(Line(squares[i].x2, lolimitright, squares[i].x2, squares[i].y2));
+			lines.push_back(Line(squares[i].x2, lolimitright, squares[i].x2, squares[i].y2+1));
 	}
-
+	addLineAt(0);
+	addLineAt(500);
 	
 }
+
 bool ableToConnect(Point p1, Point p2)
 {
 	if(p1.x == p2.x && p1.y == p2.y)
@@ -383,13 +487,66 @@ bool ableToConnect(Point p1, Point p2)
 	}
 	return true;
 }
-void calcPath()
+
+void calcPath(Node* node)
+{
+	printf("Node : %d %d %f\n", node->pos.x, node->pos.y, node->curDist);
+	if(dijkstra.size() == 0)
+	{
+		return;
+	}
+	for(int i=0; i<dijkstra.size(); i++)
+	{
+		if(dijkstra[i] == node)
+		{
+			dijkstra.erase(dijkstra.begin() + i);
+			break;
+		}
+	}
+	for(int j=0; j<dijkstra.size(); j++)
+	{
+		if(ableToConnect(node->pos, dijkstra[j]->pos))
+		{
+			connections.push_back(Line(node->pos.x, node->pos.y, dijkstra[j]->pos.x, dijkstra[j]->pos.y));
+			node->neighbors.push_back(dijkstra[j]);
+			double d = sqrt(pow(node->pos.x-dijkstra[j]->pos.x,2.0) + pow(node->pos.y-dijkstra[j]->pos.y,2.0));
+			//dijkstra[i]->dist.push_back(d);
+			if(dijkstra[j]->curDist > node->curDist + d)
+			{
+				dijkstra[j]->curDist = node->curDist + d;
+				dijkstra[j]->from = node;
+			}
+		}
+		
+	}
+	for(int i=0; i<node->neighbors.size(); i++)
+	{
+		for(int j=i+1; j<node->neighbors.size(); j++)
+		{
+			if(node->neighbors[i]->curDist > node->neighbors[j]->curDist)
+			{
+				Node* temp = node->neighbors[i];
+				node->neighbors[i] = node->neighbors[j];
+				node->neighbors[j] = temp;
+			}
+		}
+	}
+	for(int i=0; i<node->neighbors.size(); i++)
+	{
+		calcPath(node->neighbors[i]);
+	}
+}
+void getPath()
 {
 	for(int i=0; i<points.size(); i++)
 	{
 		dijkstra.push_back(new Node(points[i].x, points[i].y));
 	}
 	dijkstra[0]->curDist = 0;
+
+	Node* cur = dijkstra[dijkstra.size()-1];
+	//calcPath(dijkstra[0]);
+	/*
 	for(int i=0; i<dijkstra.size()-1; i++)
 	{
 		for(int j=i+1; j<dijkstra.size(); j++)
@@ -412,14 +569,57 @@ void calcPath()
 		}
 		
 	}
+	*/
+	
+	int i=0;
+	int adj=0;
+	while(dijkstra.size()>1)
+	{
+		printf("Node : %d %d %f\n", dijkstra[i]->pos.x, dijkstra[i]->pos.y, dijkstra[i]->curDist);
+		for(int j=i+1; j<dijkstra.size(); j++)
+		{
+			if(i!=j)
+			{
+				if(ableToConnect(dijkstra[i]->pos, dijkstra[j]->pos))
+				{
+					connections.push_back(Line(dijkstra[i]->pos.x, dijkstra[i]->pos.y, dijkstra[j]->pos.x, dijkstra[j]->pos.y));
+					dijkstra[i]->neighbors.push_back(dijkstra[j]);
+					double d = sqrt(pow(dijkstra[i]->pos.x-dijkstra[j]->pos.x,2.0) + pow(dijkstra[i]->pos.y-dijkstra[j]->pos.y,2.0));
+					//dijkstra[i]->dist.push_back(d);
+					if(dijkstra[j]->curDist > dijkstra[i]->curDist + d)
+					{
+						dijkstra[j]->curDist = dijkstra[i]->curDist + d;
+						dijkstra[j]->from = dijkstra[i];
+					}
+				}
+			}
+		}
+
+		for(int k=0; k<dijkstra.size(); k++)
+		{
+			for(int l=k+1; l<dijkstra.size(); l++)
+			{
+				if(dijkstra[k]->curDist > dijkstra[l]->curDist)
+				{
+					Node* temp = dijkstra[k];
+					dijkstra[k] = dijkstra[l];
+					dijkstra[l] = temp;
+				}
+			}
+		}
+		dijkstra.erase(dijkstra.begin());
+	}
+	
 	printf("dist %f from %d %d\n", dijkstra[dijkstra.size()-1]->curDist, dijkstra[dijkstra.size()-1]->pos.x, dijkstra[dijkstra.size()-1]->pos.y);
-	Node* cur = dijkstra[dijkstra.size()-1];
+	//Node* cur = dijkstra[dijkstra.size()-1];
 	while(cur->from != NULL)
 	{
 		path.push_back(Line(cur->pos.x, cur->pos.y, cur->from->pos.x, cur->from->pos.y));
 		cur = cur->from;
 	}
 }
+
+
 void getPoints()
 {
 	for(int i=0; i<lines.size(); i++)
@@ -427,6 +627,101 @@ void getPoints()
 		//printf("A%d %d %d %d\n", lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2);
 		points.push_back(Point(lines[i].x1, (lines[i].y1 + lines[i].y2)/2.0 ));
 	}
+
+
+
+	for(int i=0; i<lines.size(); i++)
+	{
+		for(int j=i+1; j<lines.size(); j++)
+		{
+			//printf("A%d %d %d %d\n", lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2);
+			//points.push_back(Point(lines[i].x1, (lines[i].y1 + lines[i].y2)/2.0 ));
+			if(lines[j].x1 < lines[i].x1)
+			{
+				Line temp = lines[j];
+				lines[j] = lines[i];
+				lines[i] = temp;
+			}
+		}
+	}
+	for(int i=0; i<squares.size(); i++)
+	{
+		printf("S%d %d %d %d\n", squares[i].x1, squares[i].y1, squares[i].x2, squares[i].y2);
+	}
+	for(int i=0; i<lines.size(); i++)
+	{
+		printf("B%d %d %d %d\n", lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2);
+	}
+
+	//middle points
+	
+	for(int i=0; i<lines.size(); i++)
+	{
+		int nextX=-1;
+		for(int j = i+1; j<lines.size(); j++)
+		{
+			if(nextX == -1 && lines[i].x1 < lines[j].x1)
+			{
+				//printf("%d %d %d %d %d\n", lines[i].x1, lines[i].y1, lines[j].x1, lines[j].y1, ableToConnect(Point(lines[i].x1, lines[i].y1), Point(lines[j].x1, lines[j].y1)));
+				if(ableToConnect(Point(lines[i].x1, lines[i].y1), Point(lines[j].x1, lines[j].y1))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y1), Point(lines[j].x1, lines[j].y2))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y2), Point(lines[j].x1, lines[j].y1))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y2), Point(lines[j].x1, lines[j].y2)))
+				{
+					nextX = lines[j].x1;
+					//printf("nextX = %d\n", nextX);
+				}
+			}
+			if(nextX != -1 && lines[j].x1 == nextX)
+			{
+				if(ableToConnect(Point(lines[i].x1, lines[i].y1), Point(lines[j].x1, lines[j].y1))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y1), Point(lines[j].x1, lines[j].y2))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y2), Point(lines[j].x1, lines[j].y1))
+					&& ableToConnect(Point(lines[i].x1, lines[i].y2), Point(lines[j].x1, lines[j].y2)))
+				{
+					int midX = (lines[i].x1 + lines[j].x1)/2;
+					int midY = (lines[i].y1 + lines[j].y1 +lines[i].y2 + lines[j].y2)/4;
+
+					int limY1 = midY;
+					int limY2 = midY;
+
+					for(int k=0; k<squares.size(); k++)
+					{
+						if(squares[k].x1 <= midX && midX <= squares[k].x2)
+						{
+							if(squares[k].y2 < midY && ((limY1 == midY && squares[k].y2 < limY1) || (limY1 != midY && squares[k].y2 > limY1)))
+							{
+								limY1 = squares[k].y2;
+							}
+							if(squares[k].y1 > midY && ((limY2 == midY && squares[k].y2 > limY2) || (limY2 != midY && squares[k].y2 < limY2)))
+							{
+								limY2 = squares[k].y1;
+							}
+						}
+					}
+					if(limY1 == midY)
+						limY1 = 0;
+					if(limY2 == midY)
+						limY2 = 500;
+
+					bool dup = false;
+					for(int l=0; l<points.size(); l++)
+					{
+						if(points[l].x == midX && points[l].y == (limY1+limY2)/2)
+						{
+							dup = true;
+							break;
+						}
+
+					}
+					if(!dup)
+						points.push_back(Point(midX, (limY1+limY2)/2));
+				}
+			}
+		}
+	}
+	removePointAt(0);
+	removePointAt(500);
 }
 void addObject(int x, int y){
 
@@ -462,7 +757,7 @@ void addObject(int x, int y){
 		getPoints();
 		rectCount=4;
 		points.push_back(Point(x, y));
-		calcPath();
+		getPath();
 	}
 
 	rectCount++;
