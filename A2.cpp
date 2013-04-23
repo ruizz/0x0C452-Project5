@@ -95,31 +95,153 @@ void init(void) {
 	// Set projection parameters.
 	glMatrixMode (GL_PROJECTION);
 	gluOrtho2D (0.0, 0.0, 0.0, 0.0);
+
+	glEnable(GL_POINT_SMOOTH);
+}
+
+// Filled circle function from
+// http://stackoverflow.com/questions/4197062/using-the-following-function-that-draws-a-filled-circle-in-opengl-how-do-i-make
+void draw_circle(float x, float y, float radius) { 
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(x, y, 0.0f);
+    static const int circle_points = 100;
+    static const float angle = 2.0f * 3.1416f / circle_points;
+
+    glBegin(GL_POLYGON);
+    double angle1=0.0;
+    glVertex2d(radius * cos(0.0) , radius * sin(0.0));
+    int i;
+    for (i=0; i<circle_points; i++)
+    {       
+        glVertex2d(radius * cos(angle1), radius *sin(angle1));
+        angle1 += angle;
+    }
+    glEnd();
+    glPopMatrix();
 }
 
 void drawSquare(Square s) {
 
-	glPushMatrix();
-	glColor3f(0.0, 0.0, 0.0);
+	// Gray square
+	glColor3f(0.4, 0.4, 0.4);
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x1 + s.size * 0.05, s.y1 + s.size * 0.05);
+	glVertex2i(s.x1 + s.size * 0.05, s.y2 - s.size * 0.05);
+	glVertex2i(s.x2 - s.size * 0.05, s.y2 - s.size * 0.05);
+	glVertex2i(s.x2 - s.size * 0.05, s.y1 + s.size * 0.05);
+	glEnd();
+
+	// Corners
+	glColor3f(0.8, 0.8, 0.8);
 	glBegin(GL_POLYGON);
 	glVertex2i(s.x1, s.y1);
-	glVertex2i(s.x1, s.y2);
-	glVertex2i(s.x2, s.y2);
-	glVertex2i(s.x2, s.y1);
+	glVertex2i(s.x1, s.y1 + s.size * 0.35);
+	glVertex2i(s.x1 + s.size * 0.35, s.y1 + s.size * 0.35);
+	glVertex2i(s.x1 + s.size * 0.35, s.y1);
 	glEnd();
-	glPopMatrix();
+	
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x1, s.y2);
+	glVertex2i(s.x1, s.y2 - s.size * 0.35);
+	glVertex2i(s.x1 + s.size * 0.35, s.y2 - s.size * 0.35);
+	glVertex2i(s.x1 + s.size * 0.35, s.y2);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x2, s.y2);
+	glVertex2i(s.x2, s.y2 - s.size * 0.35);
+	glVertex2i(s.x2 - s.size * 0.35, s.y2 - s.size * 0.35);
+	glVertex2i(s.x2 - s.size * 0.35, s.y2);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x2, s.y1);
+	glVertex2i(s.x2, s.y1 + s.size * 0.35);
+	glVertex2i(s.x2 - s.size * 0.35, s.y1 + s.size * 0.35);
+	glVertex2i(s.x2 - s.size * 0.35, s.y1);
+	glEnd();
+
+	// Center-edge spacers
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x1 + s.size * 0.40, s.y1 + s.size * 0.02);
+	glVertex2i(s.x1 + s.size * 0.40, s.y);
+	glVertex2i(s.x2 - s.size * 0.40, s.y);
+	glVertex2i(s.x2 - s.size * 0.40, s.y1 + s.size * 0.02);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x1 + s.size * 0.02, s.y1 + s.size * 0.40);
+	glVertex2i(s.x1 + s.size * 0.02, s.y2 - s.size * 0.40);
+	glVertex2i(s.x, s.y2 - s.size * 0.40);
+	glVertex2i(s.x, s.y1 + s.size * 0.40);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x1 + s.size * 0.40, s.y2 - s.size * 0.02);
+	glVertex2i(s.x1 + s.size * 0.40, s.y);
+	glVertex2i(s.x2 - s.size * 0.40, s.y);
+	glVertex2i(s.x2 - s.size * 0.40, s.y2 - s.size * 0.02);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x2 - s.size * 0.02, s.y1 + s.size * 0.40);
+	glVertex2i(s.x2 - s.size * 0.02, s.y2 - s.size * 0.40);
+	glVertex2i(s.x, s.y2 - s.size * 0.40);
+	glVertex2i(s.x, s.y1 + s.size * 0.40);
+	glEnd();
+
+	// Gray circle to round the corners
+	glColor3f(0.4, 0.4, 0.4);
+	draw_circle(s.x, s.y, s.size * 0.38);
+
+	// Pink lines
+	glLineWidth(s.size * 0.03);
+	glColor3f(1.0, 0.3, 0.4);
+	glBegin(GL_LINES);
+	glVertex2d(s.x, s.y1 + s.size * 0.12);
+	glVertex2d(s.x, s.y2 - s.size * 0.12);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex2d(s.x1 + s.size * 0.12, s.y);
+	glVertex2d(s.x2 - s.size * 0.12, s.y);
+	glEnd();
+
+	// Core circle
+	glColor3f(0.8, 0.8, 0.8);
+	draw_circle(s.x, s.y, s.size * 0.2);
+
+	// Heart
+	glColor3f(1.0, 0.3, 0.4);
+	draw_circle(s.x - s.size * 0.05, s.y - s.size * 0.05, s.size * 0.07);
+	draw_circle(s.x + s.size * 0.05, s.y - s.size * 0.05, s.size * 0.07);
+	glBegin(GL_POLYGON);
+	glVertex2i(s.x - s.size * 0.12, s.y - s.size * 0.03);
+	glVertex2i(s.x + s.size * 0.12, s.y - s.size * 0.03);
+	glVertex2i(s.x, s.y + s.size * 0.13);
+	glEnd();
+	
+
+	//The Enrichment Center reminds you that the Companion Cube cannot speak. In the event that the Companion Cube does speak, the Enrichment Center urges you to disregard its advice.
 }
 
 void drawPoint(Point p) {
 
 	glPushMatrix();
 
-	if (p.type == START_POINT)
+	if (p.type == START_POINT) {
+		glPointSize(15.0);
 		glColor3f(1.0, 0.5, 0.0);
-	else if (p.type == FINISH_POINT)
+	} else if (p.type == FINISH_POINT) {
+		glPointSize(15.0);
 		glColor3f(0.4, 0.7, 1.0);
-	else
+	} else {
+		glPointSize(5.0);
 		glColor3f(0.7, 0.7, 0.7);
+	}
+
 	glBegin(GL_POINTS);
 	glVertex2f(p.x, p.y);
 	glEnd();
@@ -128,8 +250,8 @@ void drawPoint(Point p) {
 
 void drawLine(Line l)
 {
-	glLineWidth(1.0);
-	glColor3f(0.9, 0.9, 0.9);
+	glLineWidth(1.5);
+	glColor3f(0.8, 0.8, 0.8);
 	glBegin(GL_LINES);
 	glVertex2d(l.x1, l.y1);
 	glVertex2d(l.x2, l.y2);
@@ -138,8 +260,8 @@ void drawLine(Line l)
 
 void drawConnections(Line l)
 {
-	glLineWidth(1.0);
-	glColor3f(0.7, 0.7, 0.7);
+	glLineWidth(0.5);
+	glColor3f(0.9, 0.9, 0.9);
 	glBegin(GL_LINES);
 	glVertex2d(l.x1, l.y1);
 	glVertex2d(l.x2, l.y2);
@@ -169,9 +291,6 @@ void redraw(void) {
 		drawSquare(squares[i]);
 	}
 
-	for (int i = 0; i < points.size(); i++) {
-		drawPoint(points[i]);
-	}
 	for(int i=0; i<lines.size(); i++)
 	{
 		drawLine(lines[i]);	
@@ -180,6 +299,11 @@ void redraw(void) {
 	{
 		drawConnections(connections[i]);
 	}
+
+	for (int i = points.size() - 1; i >= 0; i--) {
+		drawPoint(points[i]);
+	}
+
 	drawPath();
 	glutSwapBuffers();
 }
